@@ -37,9 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework", # Per django REST (DRF)
+    'rest_framework_simplejwt', # Per JWT
+    "corsheaders", # Per CORS (Cross-Origin Resource Sharing). È una politica di sicurezza dei browser. Uso per altro client su un'altra porta, altrimenti il browser lo blocca.
+    "api", # App REST del progetto
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE = [ # È una catena di "filtri" che ogni richiesta HTTP passa prima di arrivare alla view
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,7 +51,26 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Da mettere prima di CommonMiddleware: Corsheaders è un middleware che aggiunge automaticamente gli header CORS alle risposte.
+    'django.middleware.common.CommonMiddleware',
 ]
+
+REST_FRAMEWORK = { # È la configurazione globale di DRF. Dice a tutte le tue API quale autenticazione usare (JWT), quali permessi di default (es. solo utenti autenticati) e formattazione JSON, paginazione, ecc... Senza, DRF non sa come gestire autenticazione/token.
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+from datetime import timedelta
+SIMPLE_JWT = { # Configura come funzionano i token JWT. È il "motore" che genera/verifica i token Bearer.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Quanto dura il token principale (60 min).
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # Quanto dura il token di rinnovo (1 giorno).
+
+    #Altri parametri per rotazione, algoritmi, ecc...
+}
 
 ROOT_URLCONF = 'config.urls'
 
@@ -75,7 +98,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'gattini_cafe.db', # Db fornito
     }
 }
 
