@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework", # Per django REST (DRF)
     'rest_framework_simplejwt', # Per JWT
+    "django_filters", # Per fare i filtri dopo il ?
     "corsheaders", # Per CORS (Cross-Origin Resource Sharing). È una politica di sicurezza dei browser. Uso per altro client su un'altra porta, altrimenti il browser lo blocca.
     "api", # App REST del progetto
 ]
@@ -62,6 +63,10 @@ REST_FRAMEWORK = { # È la configurazione globale di DRF. Dice a tutte le tue AP
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.IsAuthenticated',
         'rest_framework.permissions.AllowAny',  # Tutti possono accedere (per test)
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
     ],
 }
 

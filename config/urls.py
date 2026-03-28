@@ -15,9 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.http import JsonResponse
-from api.views import HelloView  # <-- importa la classe di prova DRF
+from api.views import HelloView  # <Importa la classe di prova DRF
 
 def hello_view(request): # View base semplice per capire il flusso. NO DRF (APIView)
     return JsonResponse({"message": "Ciao da Django!", "metodo": request.method})
@@ -26,4 +26,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/hello/', hello_view),  # Prima view di esempio
     path('api/helloREST/', HelloView.as_view()),  # <-- .as_view() trasforma classe in funzione
+    path('api/', include('api.urls')),  # Tutti gli endpoint sotto /api/
 ]
