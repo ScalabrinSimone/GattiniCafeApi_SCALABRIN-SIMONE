@@ -16,7 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.http import JsonResponse
+from api.views import HelloView  # <-- importa la classe di prova DRF
+
+def hello_view(request): # View base semplice per capire il flusso. NO DRF (APIView)
+    return JsonResponse({"message": "Ciao da Django!", "metodo": request.method})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/hello/', hello_view),  # Prima view di esempio
+    path('api/helloREST/', HelloView.as_view()),  # <-- .as_view() trasforma classe in funzione
 ]
