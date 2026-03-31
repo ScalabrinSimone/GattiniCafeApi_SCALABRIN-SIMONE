@@ -26,7 +26,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated # Per test senza permessi
 from .models import Categoria, Prodotto, Ordine
 from .serializers import CategoriaSerializer, ProdottoSerializer, UserSerializer, OrdineSerializer
-from .permissions import IsOwnerOrAdmin
+from .permissions import IsOwnerOrAdmin, IsAdminUser
 from rest_framework import viewsets, filters
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -43,15 +43,15 @@ class HelloView(APIView):
         return Response({"message": "POST ricevuto!", "metodo": request.method})
 
 
-class CategoriaViewSet(viewsets.ReadOnlyModelViewSet): # Automaticamente GET lista e GET dettaglio (Boilerplate: codice ripetitivo (es. gestire GET/POST manualmente). ViewSet lo elimina.).
+class CategoriaViewSet(viewsets.ModelViewSet): # Automaticamente GET lista e GET dettaglio (Boilerplate: codice ripetitivo (es. gestire GET/POST manualmente). ViewSet lo elimina.).
     queryset = Categoria.objects.all() # Cosa mostrare.
     serializer_class = CategoriaSerializer # Come serializzare.
-    permission_classes = [AllowAny] # Chi può accedere.
+    permission_classes = [IsAdminUser] # Chi può accedere.
 
-class ProdottoViewSet(viewsets.ReadOnlyModelViewSet):
+class ProdottoViewSet(viewsets.ModelViewSet): # Non ReadOnly: permette anche POST/PUT/DELETE (per admin).
     queryset = Prodotto.objects.all()
     serializer_class = ProdottoSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser] # Solo admin può modificare i prodotti.
     filterset_fields = ['categoria', 'disponibile'] # ?categoria=1&disponibile=1
     search_fields = ['nome', 'descrizione'] # ?search=caffe
 
@@ -77,6 +77,11 @@ class OrdineViewSet(viewsets.ModelViewSet):
     queryset = Ordine.objects.all()  # E' statico per router
     serializer_class = OrdineSerializer
     permission_classes = [IsOwnerOrAdmin]
+
+    def perform_create(self, serializer):
+        # imposta utente corrente
+        serializer.save(utente_id=self.request.user.id)
+        # TODO: calcola totale da prodotti
 
     def get_queryset(self):
         if self.request.user.is_staff:  # Admin vede tutti gli ordini.

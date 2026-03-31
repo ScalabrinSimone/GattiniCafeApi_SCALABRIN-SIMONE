@@ -8,3 +8,6 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         if request.user.is_staff:  # Admin può fare tutto.
             return True
         return obj.utente_id == request.user.id  # Solo proprietario dell'ordine può modificare.
+    
+class IsAdminUser(permissions.IsAdminUser):
+    pass # staff = True.

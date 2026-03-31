@@ -62,7 +62,7 @@ class Ordine(models.Model):
     id = models.AutoField(primary_key=True)  # aggiungi id PK
     utente_id = models.IntegerField()
     data_ordine = models.TextField(blank=True, null=True)  # probabilmente DateTime, ma ok per ora
-    stato = models.TextField(blank=True, null=True)
+    stato = models.CharField(max_length=20, default='in_attesa')  # Automaticamente messo a "in_attesa" se non specificato.
     totale = models.FloatField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
 

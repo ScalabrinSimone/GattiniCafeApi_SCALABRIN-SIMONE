@@ -59,6 +59,7 @@ MIDDLEWARE = [ # È una catena di "filtri" che ogni richiesta HTTP passa prima d
 REST_FRAMEWORK = { # È la configurazione globale di DRF. Dice a tutte le tue API quale autenticazione usare (JWT), quali permessi di default (es. solo utenti autenticati) e formattazione JSON, paginazione, ecc... Senza, DRF non sa come gestire autenticazione/token.
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Per browser come accesso (utile per test con admin)
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
