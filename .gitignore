@@ -31,6 +31,9 @@ gattini_cafe.db
 media/
 staticfiles/
 
+# Richieste REST (estensione)
+RichiesteREST.txt
+
 # VSCode
 .vscode/
 
