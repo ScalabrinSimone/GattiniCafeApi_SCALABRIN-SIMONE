@@ -6,6 +6,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'categorie', views.CategoriaViewSet) # r = regex per catturare l’ID
 router.register(r'prodotti', views.ProdottoViewSet)
+router.register(r'ordini', views.OrdineViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

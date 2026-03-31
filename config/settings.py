@@ -61,8 +61,8 @@ REST_FRAMEWORK = { # È la configurazione globale di DRF. Dice a tutte le tue AP
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.permissions.AllowAny',  # Tutti possono accedere (per test)
+        'rest_framework.permissions.IsAuthenticated',
+        # 'rest_framework.permissions.AllowAny',  # Tutti possono accedere (per test)
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
