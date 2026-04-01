@@ -32,7 +32,7 @@ media/
 staticfiles/
 
 # Richieste REST (estensione)
-RichiesteREST.txt
+# RichiesteREST.txt
 
 # VSCode
 .vscode/

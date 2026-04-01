@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated # Per test senza permessi
 from .models import Categoria, Prodotto, Ordine
-from .serializers import CategoriaSerializer, ProdottoSerializer, UserSerializer, OrdineSerializer
+from .serializers import CategoriaSerializer, OrdineCreateSerializer, ProdottoSerializer, UserSerializer, OrdineSerializer
 from .permissions import IsOwnerOrAdmin, IsAdminUser
 from rest_framework import viewsets, filters
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -75,13 +75,16 @@ class MeView(APIView): # Solo autenticati; mostra dati utente.
     
 class OrdineViewSet(viewsets.ModelViewSet):
     queryset = Ordine.objects.all()  # E' statico per router
-    serializer_class = OrdineSerializer
+    serializer_class = OrdineSerializer # Lista/dettaglio
     permission_classes = [IsOwnerOrAdmin]
 
+    def get_serializer_class(self):
+            if self.action == 'create':
+                return OrdineCreateSerializer  # Diverso per POST
+            return OrdineSerializer
+
     def perform_create(self, serializer):
-        # imposta utente corrente
         serializer.save(utente_id=self.request.user.id)
-        # TODO: calcola totale da prodotti
 
     def get_queryset(self):
         if self.request.user.is_staff:  # Admin vede tutti gli ordini.

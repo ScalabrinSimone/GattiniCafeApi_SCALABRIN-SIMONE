@@ -59,3 +59,34 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', '')
         )
         return user
+    
+class OrdineProdottoCreateSerializer(serializers.ModelSerializer):
+    prodotto_id = serializers.PrimaryKeyRelatedField(queryset=Prodotto.objects.all())
+
+    class Meta:
+        model = OrdineProdotto
+        fields = ['prodotto_id', 'quantita']
+
+class OrdineCreateSerializer(serializers.ModelSerializer):
+    prodotti = OrdineProdottoCreateSerializer(many=True)
+    utente_id = serializers.HiddenField(default=CurrentUserDefault())
+    
+    class Meta:
+        model = Ordine
+        fields = '__all__'
+        read_only_fields = ['totale', 'data_ordine']
+
+    def create(self, validated_data):
+        prodotti_data = validated_data.pop('prodotti')
+        ordine = Ordine.objects.create(**validated_data)
+        
+        totale = 0
+        for prod_data in prodotti_data:
+            prodotto = prod_data.pop('prodotto_id')
+            quantita = prod_data['quantita']
+            ordine_prodotto = OrdineProdotto.objects.create(ordine=ordine, **prod_data)
+            totale += prodotto.prezzo * quantita
+        
+        ordine.totale = totale
+        ordine.save()
+        return ordine
