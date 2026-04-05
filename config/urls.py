@@ -17,16 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
-# from api.views import HelloView  # <Importa la classe di prova DRF
 
-def hello_view(request): # View base semplice per capire il flusso. NO DRF (APIView)
+
+def hello_view(request):
+    # View base semplice per capire il flusso. NO DRF (APIView)
     return JsonResponse({"message": "Ciao da Django!", "metodo": request.method})
+
 
 def home_view(request):
     return JsonResponse({
         "benvenuto": "Gattini Cafe API 🐱",
         "versione": "1.0",
-        "docs": "Tutti gli endpoint disponibili sotto /api/",
         "endpoints": {
             "autenticazione": {
                 "POST /api/auth/register/": "Registrazione nuovo utente",
@@ -43,7 +44,7 @@ def home_view(request):
             },
             "ordini_utente": {
                 "GET  /api/ordini/": "[JWT] Lista ordini — admin vede tutti, utente solo i propri",
-                "POST /api/ordini/": "[JWT] Crea ordine con prodotti (totale calcolato auto)",
+                "POST /api/ordini/": "[JWT] Crea ordine (totale calcolato automaticamente)",
                 "GET  /api/ordini/{id}/": "[JWT] Dettaglio ordine"
             },
             "solo_admin": {
@@ -59,10 +60,10 @@ def home_view(request):
         }
     })
 
+
 urlpatterns = [
-    path('', home_view), # 127.0.0.1:8000/
+    path('', home_view),                    # 127.0.0.1:8000/ — home con lista endpoint
     path('admin/', admin.site.urls),
-    path('api/hello/', hello_view),  # Prima view di esempio
-    # path('api/helloREST/', HelloView.as_view()),  # <-- .as_view() trasforma classe in funzione
-    path('api/', include('api.urls')),  # Tutti gli endpoint sotto /api/
+    path('api/hello/', hello_view),         # test base Django (no DRF)
+    path('api/', include('api.urls')),      # tutti gli endpoint API
 ]

@@ -4,18 +4,19 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from . import views
 
 router = DefaultRouter()
-router.register(r'categorie', views.CategoriaViewSet) # r = regex per catturare l’ID
+router.register(r'categorie', views.CategoriaViewSet)
 router.register(r'prodotti', views.ProdottoViewSet)
 router.register(r'ordini', views.OrdineViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('helloREST/', views.HelloView.as_view()),  # Test base DRF
+    path('', views.ApiRootView.as_view()),       # api/ — lista endpoint nel browser DRF
+    path('', include(router.urls)),              # api/categorie/, api/prodotti/, api/ordini/
+    path('helloREST/', views.HelloView.as_view()),
 
     # Autenticazione JWT
     path('auth/register/', views.RegisterView.as_view()),
-    path('auth/login/', TokenObtainPairView.as_view()),  # DRF JWT pronto
-    path('auth/logout/', views.LogoutView.as_view()),
+    path('auth/login/', TokenObtainPairView.as_view()),
     path('auth/token/refresh/', TokenRefreshView.as_view()),
+    path('auth/logout/', views.LogoutView.as_view()),
     path('auth/me/', views.MeView.as_view()),
 ]
