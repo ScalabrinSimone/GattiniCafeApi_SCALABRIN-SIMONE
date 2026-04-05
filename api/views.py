@@ -29,6 +29,7 @@ from .serializers import CategoriaSerializer, OrdineCreateSerializer, ProdottoSe
 from .permissions import IsOwnerOrAdmin, IsAdminUser
 from rest_framework import viewsets, filters
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.decorators import action
 
 class HelloView(APIView):
     def get(self, request):
@@ -46,14 +47,24 @@ class HelloView(APIView):
 class CategoriaViewSet(viewsets.ModelViewSet): # Automaticamente GET lista e GET dettaglio (Boilerplate: codice ripetitivo (es. gestire GET/POST manualmente). ViewSet lo elimina.).
     queryset = Categoria.objects.all() # Cosa mostrare.
     serializer_class = CategoriaSerializer # Come serializzare.
-    permission_classes = [IsAdminUser] # Chi può accedere.
+    # permission_classes = [IsAdminUser] # Chi può accedere.
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
 class ProdottoViewSet(viewsets.ModelViewSet): # Non ReadOnly: permette anche POST/PUT/DELETE (per admin).
     queryset = Prodotto.objects.all()
     serializer_class = ProdottoSerializer
-    permission_classes = [IsAdminUser] # Solo admin può modificare i prodotti.
+    # permission_classes = [IsAdminUser] # Solo admin può modificare i prodotti.
     filterset_fields = ['categoria', 'disponibile'] # ?categoria=1&disponibile=1
     search_fields = ['nome', 'descrizione'] # ?search=caffe
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
 class RegisterView(APIView): # Valida e crea utente (password hashed automaticamente).
     permission_classes = [AllowAny]
@@ -90,3 +101,17 @@ class OrdineViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:  # Admin vede tutti gli ordini.
             return Ordine.objects.all()
         return Ordine.objects.filter(utente_id=self.request.user.id)  # Utente vede solo i propri ordini.
+    
+    @action(detail=True, methods=['patch'], url_path='stato', permission_classes=[IsAdminUser])
+    def aggiorna_stato(self, request, pk=None):
+        ordine = self.get_object()
+        stato = request.data.get('stato')
+        stati_validi = ['in_attesa', 'in_preparazione', 'completato', 'annullato']
+        if stato not in stati_validi:
+            return Response(
+                {'error': f'Stato non valido. Valori: {stati_validi}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        ordine.stato = stato
+        ordine.save()
+        return Response(OrdineSerializer(ordine).data)

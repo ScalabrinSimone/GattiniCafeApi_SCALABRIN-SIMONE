@@ -43,3 +43,9 @@ Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.access}}
 
 {"nome": "Cappuccino Gattoso", "prezzo": 2.50, "disponibile": 1, "categoria": 1}
+
+### 8
+PATCH http://127.0.0.1:8000/api/ordini/1/stato/
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"stato": "in_preparazione"}
