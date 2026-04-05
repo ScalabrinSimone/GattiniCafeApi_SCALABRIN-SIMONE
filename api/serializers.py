@@ -68,8 +68,7 @@ class OrdineProdottoCreateSerializer(serializers.ModelSerializer):
         fields = ['prodotto_id', 'quantita']
 
 class OrdineCreateSerializer(serializers.ModelSerializer):
-    prodotti = OrdineProdottoCreateSerializer(many=True)
-    utente_id = serializers.HiddenField(default=CurrentUserDefault())
+    utente_id = serializers.PrimaryKeyRelatedField(queryset=Prodotto.objects.all())
     
     class Meta:
         model = Ordine
@@ -84,9 +83,13 @@ class OrdineCreateSerializer(serializers.ModelSerializer):
         for prod_data in prodotti_data:
             prodotto = prod_data.pop('prodotto_id')
             quantita = prod_data['quantita']
-            ordine_prodotto = OrdineProdotto.objects.create(ordine=ordine, **prod_data)
+            OrdineProdotto.objects.create(
+                ordine=ordine,
+                prodotto=prodotto,
+                quantita=quantita
+            )
             totale += prodotto.prezzo * quantita
-        
+
         ordine.totale = totale
         ordine.save()
         return ordine
