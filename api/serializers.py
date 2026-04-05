@@ -69,7 +69,7 @@ class OrdineCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Ordine
-        fields = ['utente_id', 'stato', 'note', 'totale', 'data_ordine', 'prodotti']
+        fields = ['id', 'utente_id', 'stato', 'note', 'totale', 'data_ordine', 'prodotti']
         read_only_fields = ['totale', 'data_ordine']
 
     def create(self, validated_data):
@@ -96,4 +96,4 @@ class OrdineCreateSerializer(serializers.ModelSerializer):
 
         ordine.totale = totale
         ordine.save()
-        return ordine
+        return ordine  # OrdineViewSet usa get_serializer per serializzare la risposta.
