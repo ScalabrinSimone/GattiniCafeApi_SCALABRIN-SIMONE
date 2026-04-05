@@ -15,6 +15,7 @@ urlpatterns = [
     # Autenticazione JWT
     path('auth/register/', views.RegisterView.as_view()),
     path('auth/login/', TokenObtainPairView.as_view()),  # DRF JWT pronto
+    path('auth/logout/', views.LogoutView.as_view()),
     path('auth/token/refresh/', TokenRefreshView.as_view()),
     path('auth/me/', views.MeView.as_view()),
 ]

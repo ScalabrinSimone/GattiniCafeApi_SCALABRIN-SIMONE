@@ -76,6 +76,11 @@ class OrdineCreateSerializer(serializers.ModelSerializer):
         prodotti_data = validated_data.pop('prodotti')
         validated_data['data_ordine'] = timezone.now().isoformat() # Converte esplicitamente in stringa ISO una vriabile datetime.
         validated_data.setdefault('stato', 'in_attesa')
+        
+        # HiddenField passa l'oggetto User, ma utente_id nel modello è IntegerField.
+        utente = validated_data.pop('utente_id')
+        validated_data['utente_id'] = utente.id  # Estrae solo l'id.
+        
         ordine = Ordine.objects.create(**validated_data)
 
         totale = 0

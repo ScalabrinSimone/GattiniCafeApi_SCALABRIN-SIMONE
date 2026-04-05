@@ -20,6 +20,8 @@ Questa è la base di tutti gli endpoint del tuo progetto
 
 # Create your views here.
 
+from django.urls import include, path
+import rest_framework
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -32,45 +34,32 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters
+from rest_framework.routers import DefaultRouter
+from . import views
+
+class ApiRootView(APIView):
+    # Sostituisce la root del router con una lista leggibile di tutti gli endpoint
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
+            "categorie": request.build_absolute_uri('categorie/'),
+            "prodotti": request.build_absolute_uri('prodotti/'),
+            "ordini": request.build_absolute_uri('ordini/'),
+            "auth": {
+                "register": request.build_absolute_uri('auth/register/'),
+                "login": request.build_absolute_uri('auth/login/'),
+                "refresh": request.build_absolute_uri('auth/token/refresh/'),
+                "logout": request.build_absolute_uri('auth/logout/'),
+                "me": request.build_absolute_uri('auth/me/'),
+            }
+        })
 
 class HelloView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({
-            "benvenuto": "Gattini Cafe API 🐱",
-            "versione": "1.0",
-            "endpoints": {
-                "autenticazione": {
-                    "POST /api/auth/register/": "Registrazione nuovo utente",
-                    "POST /api/auth/login/": "Login — restituisce access + refresh token",
-                    "POST /api/auth/token/refresh/": "Rinnova access token",
-                    "GET  /api/auth/me/": "[JWT] Dati utente autenticato",
-                },
-                "menu_pubblico": {
-                    "GET /api/categorie/": "Lista categorie",
-                    "GET /api/categorie/{id}/": "Dettaglio categoria",
-                    "GET /api/prodotti/": "Lista prodotti — filtri: ?categoria=id &disponibile=1 &search=testo",
-                    "GET /api/prodotti/{id}/": "Dettaglio prodotto",
-                },
-                "ordini_utente": {
-                    "GET  /api/ordini/": "[JWT] Lista ordini (propri). Admin vede tutti.",
-                    "POST /api/ordini/": "[JWT] Crea ordine con prodotti e calcolo totale automatico",
-                    "GET  /api/ordini/{id}/": "[JWT] Dettaglio ordine",
-                },
-                "gestione_admin": {
-                    "PATCH  /api/ordini/{id}/stato/": "[JWT Admin] Aggiorna stato ordine",
-                    "POST   /api/categorie/": "[JWT Admin] Crea categoria",
-                    "PUT    /api/categorie/{id}/": "[JWT Admin] Modifica categoria",
-                    "DELETE /api/categorie/{id}/": "[JWT Admin] Elimina categoria",
-                    "POST   /api/prodotti/": "[JWT Admin] Crea prodotto",
-                    "PUT    /api/prodotti/{id}/": "[JWT Admin] Modifica prodotto",
-                    "PATCH  /api/prodotti/{id}/": "[JWT Admin] Aggiornamento parziale prodotto",
-                    "DELETE /api/prodotti/{id}/": "[JWT Admin] Elimina prodotto",
-                    "POST   /api/auth/logout/": "[JWT Admin] Logout — invalida refresh token",
-                },
-            }
-        })
+        return Response({})
 
     def post(self, request): # request di DRF ha parser automatici (JSON, form, ecc.).
         return Response({"message": "POST ricevuto!", "metodo": request.method})
@@ -172,3 +161,14 @@ class OrdineViewSet(viewsets.ModelViewSet):
         ordine.stato = stato
         ordine.save()
         return Response(OrdineSerializer(ordine).data)
+    
+    urlpatterns = [
+    path('', ApiRootView.as_view()), # api/ : lista endpoint cliccabili nel browser DRF.
+    path('', include(router.urls)),
+    path('helloREST/', views.HelloView.as_view()),
+    path('auth/register/', views.RegisterView.as_view()),
+    path('auth/login/', TokenObtainPairView.as_view()),
+    path('auth/token/refresh/', TokenRefreshView.as_view()),
+    path('auth/logout/', views.LogoutView.as_view()),
+    path('auth/me/', views.MeView.as_view()),
+]
