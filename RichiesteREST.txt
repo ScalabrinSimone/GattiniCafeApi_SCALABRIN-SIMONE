@@ -1,6 +1,6 @@
 ### Pagina di richieste REST da utilizare con estensione REST client https://marketplace.visualstudio.com/items?itemName=humao.rest-client.
 
-### 1. REGISTER nuovo utente
+### 1. REGISTER
 POST http://127.0.0.1:8000/api/auth/register/
 Content-Type: application/json
 
@@ -10,7 +10,8 @@ Content-Type: application/json
   "password": "miagola123"
 }
 
-### 2. LOGIN (copia access/refresh dal response sopra)
+### 2. LOGIN
+# @name loginRequest
 POST http://127.0.0.1:8000/api/auth/login/
 Content-Type: application/json
 
@@ -19,39 +20,43 @@ Content-Type: application/json
   "password": "miagola123"
 }
 
-### 3. ME (utente loggato)
+### 3. ME (usa il token dal login)
 GET http://127.0.0.1:8000/api/auth/me/
-Authorization: Bearer {{response-body.access}}
+Authorization: Bearer {{loginRequest.response.body.access}}
 
-### 4. MENU PUBBLICO
-GET http://127.0.0.1:8000/api/categorie/
-GET http://127.0.0.1:8000/api/prodotti/?search=caffe&disponibile=1
-
-### 5. ORDINI (lista tuoi)
+### 4. LISTA ORDINI
 GET http://127.0.0.1:8000/api/ordini/
-Authorization: Bearer {{response-body.access}}
+Authorization: Bearer {{loginRequest.response.body.access}}
 
-### 6. CREA ORDINE COMPLETO (usa token login)
+### 5. CREA ORDINE
 POST http://127.0.0.1:8000/api/ordini/
 Content-Type: application/json
-Authorization: Bearer {{response-body.access}}
+Authorization: Bearer {{loginRequest.response.body.access}}
 
 {
-  "note": "Senza lattosio per micetto",
+  "note": "Senza lattosio",
   "prodotti": [
-    {"prodotto_id": 1, "quantita": 2},
-    {"prodotto_id": 2, "quantita": 1}
+    {"prodotto_id": 1, "quantita": 2}
   ]
 }
 
-### 7. ADMIN CRUD (superuser token)
-# Prima createsuperuser, poi login come admin
-POST http://127.0.0.1:8000/api/prodotti/
+### 6. LOGIN ADMIN
+# @name adminLogin
+POST http://127.0.0.1:8000/api/auth/login/
 Content-Type: application/json
-Authorization: Bearer ADMIN_TOKEN
 
 {
-  "nome": "Nuovo Cappuccino Gattoso",
+  "username": "admin",
+  "password": "tuapassword"
+}
+
+### 7. CREA PRODOTTO (admin)
+POST http://127.0.0.1:8000/api/prodotti/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{
+  "nome": "Cappuccino Gattoso",
   "prezzo": 2.50,
   "disponibile": 1,
   "categoria": 1
