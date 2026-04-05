@@ -30,19 +30,67 @@ from .permissions import IsOwnerOrAdmin, IsAdminUser
 from rest_framework import viewsets, filters
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
 
 class HelloView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
-        categorie = Categoria.objects.all()[:3]
-        serializer = CategoriaSerializer(categorie, many=True)
         return Response({
-            "message": "Dato reale dal DB!",
-            "categorie": serializer.data
+            "benvenuto": "Gattini Cafe API 🐱",
+            "versione": "1.0",
+            "endpoints": {
+                "autenticazione": {
+                    "POST /api/auth/register/": "Registrazione nuovo utente",
+                    "POST /api/auth/login/": "Login — restituisce access + refresh token",
+                    "POST /api/auth/token/refresh/": "Rinnova access token",
+                    "GET  /api/auth/me/": "[JWT] Dati utente autenticato",
+                },
+                "menu_pubblico": {
+                    "GET /api/categorie/": "Lista categorie",
+                    "GET /api/categorie/{id}/": "Dettaglio categoria",
+                    "GET /api/prodotti/": "Lista prodotti — filtri: ?categoria=id &disponibile=1 &search=testo",
+                    "GET /api/prodotti/{id}/": "Dettaglio prodotto",
+                },
+                "ordini_utente": {
+                    "GET  /api/ordini/": "[JWT] Lista ordini (propri). Admin vede tutti.",
+                    "POST /api/ordini/": "[JWT] Crea ordine con prodotti e calcolo totale automatico",
+                    "GET  /api/ordini/{id}/": "[JWT] Dettaglio ordine",
+                },
+                "gestione_admin": {
+                    "PATCH  /api/ordini/{id}/stato/": "[JWT Admin] Aggiorna stato ordine",
+                    "POST   /api/categorie/": "[JWT Admin] Crea categoria",
+                    "PUT    /api/categorie/{id}/": "[JWT Admin] Modifica categoria",
+                    "DELETE /api/categorie/{id}/": "[JWT Admin] Elimina categoria",
+                    "POST   /api/prodotti/": "[JWT Admin] Crea prodotto",
+                    "PUT    /api/prodotti/{id}/": "[JWT Admin] Modifica prodotto",
+                    "PATCH  /api/prodotti/{id}/": "[JWT Admin] Aggiornamento parziale prodotto",
+                    "DELETE /api/prodotti/{id}/": "[JWT Admin] Elimina prodotto",
+                    "POST   /api/auth/logout/": "[JWT Admin] Logout — invalida refresh token",
+                },
+            }
         })
 
     def post(self, request): # request di DRF ha parser automatici (JSON, form, ecc.).
         return Response({"message": "POST ricevuto!", "metodo": request.method})
 
+
+class ProdottoFilter(django_filters.FilterSet):
+    disponibile = django_filters.NumberFilter(field_name='disponibile')
+    disponibile_bool = django_filters.CharFilter(method='filter_disponibile_bool')
+
+    def filter_disponibile_bool(self, queryset, name, value):
+        # Accetta sia ?disponibile=1 che ?disponibile=true
+        if value.lower() in ['true', '1']:
+            return queryset.filter(disponibile=1)
+        if value.lower() in ['false', '0']:
+            return queryset.filter(disponibile=0)
+        return queryset
+
+    class Meta:
+        model = Prodotto
+        fields = ['categoria', 'disponibile']
 
 class CategoriaViewSet(viewsets.ModelViewSet): # Automaticamente GET lista e GET dettaglio (Boilerplate: codice ripetitivo (es. gestire GET/POST manualmente). ViewSet lo elimina.).
     queryset = Categoria.objects.all() # Cosa mostrare.
@@ -58,7 +106,8 @@ class ProdottoViewSet(viewsets.ModelViewSet): # Non ReadOnly: permette anche POS
     queryset = Prodotto.objects.all()
     serializer_class = ProdottoSerializer
     # permission_classes = [IsAdminUser] # Solo admin può modificare i prodotti.
-    filterset_fields = ['categoria', 'disponibile'] # ?categoria=1&disponibile=1
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = ProdottoFilter # Sostituisce filterset_fields (?categoria=1&disponibile=1)
     search_fields = ['nome', 'descrizione'] # ?search=caffe
 
     def get_permissions(self):
@@ -99,7 +148,7 @@ class OrdineViewSet(viewsets.ModelViewSet):
             return Ordine.objects.all()
         return Ordine.objects.filter(utente_id=self.request.user.id)  # Utente vede solo i propri ordini.
     
-    
+
     """ TEORIA CON CHAT GPT:
         @action crea un endpoint extra su un ViewSet esistente, al di fuori dei 7 standard
         (list, create, retrieve, update, partial_update, destroy).

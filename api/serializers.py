@@ -74,7 +74,7 @@ class OrdineCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         prodotti_data = validated_data.pop('prodotti')
-        validated_data['data_ordine'] = timezone.now()
+        validated_data['data_ordine'] = timezone.now().isoformat() # Converte esplicitamente in stringa ISO una vriabile datetime.
         validated_data.setdefault('stato', 'in_attesa')
         ordine = Ordine.objects.create(**validated_data)
 
