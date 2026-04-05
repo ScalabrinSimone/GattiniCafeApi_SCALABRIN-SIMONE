@@ -94,14 +94,22 @@ class OrdineViewSet(viewsets.ModelViewSet):
                 return OrdineCreateSerializer  # Diverso per POST
             return OrdineSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(utente_id=self.request.user.id)
-
     def get_queryset(self):
         if self.request.user.is_staff:  # Admin vede tutti gli ordini.
             return Ordine.objects.all()
         return Ordine.objects.filter(utente_id=self.request.user.id)  # Utente vede solo i propri ordini.
     
+    
+    """ TEORIA CON CHAT GPT:
+        @action crea un endpoint extra su un ViewSet esistente, al di fuori dei 7 standard
+        (list, create, retrieve, update, partial_update, destroy).
+        detail=True  → agisce su un oggetto specifico: /api/ordini/{id}/stato/
+        detail=False → agisce sulla lista: /api/ordini/stato/ (non il nostro caso)
+        url_path     → il pezzo di URL aggiunto dopo l'id: "stato" → /api/ordini/1/stato/
+        methods      → solo PATCH accettato
+        permission_classes → sovrascrive i permessi del ViewSet solo per questa action
+    """
+
     @action(detail=True, methods=['patch'], url_path='stato', permission_classes=[IsAdminUser])
     def aggiorna_stato(self, request, pk=None):
         ordine = self.get_object()

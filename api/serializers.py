@@ -31,17 +31,13 @@ class SimpleUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 class OrdineSerializer(serializers.ModelSerializer):
-    utente_id = serializers.HiddenField(default=CurrentUserDefault())
+    # HiddenField sparisce dal JSON di risposta, IntegerField read_only lo mostra
+    utente_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Ordine
         fields = '__all__'
-        read_only_fields = ['totale', 'data_ordine']  # calcolati auto
-    
-    def create(self, validated_data):
-        validated_data['utente_id'] = self.context['request'].user.id
-        validated_data['data_ordine'] = timezone.now()
-        return super().create(validated_data)
+        read_only_fields = ['totale', 'data_ordine', 'utente_id']
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
