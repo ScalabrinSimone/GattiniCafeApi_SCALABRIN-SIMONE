@@ -4,28 +4,23 @@
 POST http://127.0.0.1:8000/api/auth/register/
 Content-Type: application/json
 
-{
-  "username": "gatto1",
-  "email": "gatto1@test.com",
-  "password": "miagola123"
-}
+{"username": "gatto1", "email": "gatto1@test.com", "password": "miagola123"}
 
 ### 2. LOGIN
 # @name loginRequest
 POST http://127.0.0.1:8000/api/auth/login/
 Content-Type: application/json
 
-{
-  "username": "gatto1",
-  "password": "miagola123"
-}
+{"username": "gatto1", "password": "miagola123"}
 
 ### 3. ME (usa il token dal login)
 GET http://127.0.0.1:8000/api/auth/me/
+Content-Type: application/json
 Authorization: Bearer {{loginRequest.response.body.access}}
 
 ### 4. LISTA ORDINI
 GET http://127.0.0.1:8000/api/ordini/
+Content-Type: application/json
 Authorization: Bearer {{loginRequest.response.body.access}}
 
 ### 5. CREA ORDINE
@@ -33,31 +28,18 @@ POST http://127.0.0.1:8000/api/ordini/
 Content-Type: application/json
 Authorization: Bearer {{loginRequest.response.body.access}}
 
-{
-  "note": "Senza lattosio",
-  "prodotti": [
-    {"prodotto_id": 1, "quantita": 2}
-  ]
-}
+{"note": "Senza lattosio", "prodotti": [{"prodotto_id": 1, "quantita": 2}]}
 
 ### 6. LOGIN ADMIN
 # @name adminLogin
 POST http://127.0.0.1:8000/api/auth/login/
 Content-Type: application/json
 
-{
-  "username": "admin",
-  "password": "tuapassword"
-}
+{"username": "admin", "password": "tuapassword"}
 
 ### 7. CREA PRODOTTO (admin)
 POST http://127.0.0.1:8000/api/prodotti/
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.access}}
 
-{
-  "nome": "Cappuccino Gattoso",
-  "prezzo": 2.50,
-  "disponibile": 1,
-  "categoria": 1
-}
+{"nome": "Cappuccino Gattoso", "prezzo": 2.50, "disponibile": 1, "categoria": 1}

@@ -68,20 +68,23 @@ class OrdineProdottoCreateSerializer(serializers.ModelSerializer):
         fields = ['prodotto_id', 'quantita']
 
 class OrdineCreateSerializer(serializers.ModelSerializer):
-    utente_id = serializers.PrimaryKeyRelatedField(queryset=Prodotto.objects.all())
+    prodotti = OrdineProdottoCreateSerializer(many=True, write_only=True)
+    utente_id = serializers.HiddenField(default=CurrentUserDefault())
     
     class Meta:
         model = Ordine
-        fields = '__all__'
+        fields = ['utente_id', 'stato', 'note', 'totale', 'data_ordine', 'prodotti']
         read_only_fields = ['totale', 'data_ordine']
 
     def create(self, validated_data):
         prodotti_data = validated_data.pop('prodotti')
+        validated_data['data_ordine'] = timezone.now()
+        validated_data.setdefault('stato', 'in_attesa')
         ordine = Ordine.objects.create(**validated_data)
-        
+
         totale = 0
         for prod_data in prodotti_data:
-            prodotto = prod_data.pop('prodotto_id')
+            prodotto = prod_data['prodotto_id']  # PrimaryKeyRelatedField restituisce l'oggetto
             quantita = prod_data['quantita']
             OrdineProdotto.objects.create(
                 ordine=ordine,
