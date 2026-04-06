@@ -24,6 +24,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from .models import Categoria, Prodotto, Ordine
 from .serializers import CategoriaSerializer, OrdineCreateSerializer, ProdottoSerializer, UserSerializer, OrdineSerializer
 from .permissions import IsOwnerOrAdmin, IsAdminUser
@@ -171,6 +172,21 @@ class OrdineViewSet(viewsets.ModelViewSet):
             return OrdineCreateSerializer
         return OrdineSerializer
 
+    def _valida_data(self, valore, nome_param):
+        """
+        Valida che il valore sia nel formato YYYY-MM-DD.
+        Se non lo è, lancia ValidationError che DRF intercetta
+        e restituisce automaticamente come risposta 400 BAD REQUEST.
+        Questo è il modo corretto per gestire errori di input in un ViewSet:
+        non serve overridare list(), il meccanismo DRF fa tutto da solo.
+        """
+        try:
+            datetime.strptime(valore, '%Y-%m-%d')
+        except ValueError:
+            raise ValidationError({
+                nome_param: f"Formato non valido: '{valore}'. Usa YYYY-MM-DD (es. 2026-04-06)."
+            })
+
     def get_queryset(self):
         # Base: admin vede tutti gli ordini, utente normale solo i propri
         if self.request.user.is_staff:
@@ -182,41 +198,22 @@ class OrdineViewSet(viewsets.ModelViewSet):
         # Formato atteso: YYYY-MM-DD (es. ?data_da=2024-11-01&data_a=2024-11-30)
         #
         # NOTA: data_ordine e' un TextField nel modello (il DB fornito salva date come testo).
-        # __date__gte non e' disponibile su TextField, quindi confrontiamo le stringhe
-        # direttamente con __gte / __lte.
-        # Questo funziona correttamente perche' il formato YYYY-MM-DD HH:MM:SS
-        # e' ordinabile lessicograficamente (anno prima, poi mese, poi giorno).
-        # Es: "2024-11-01" < "2024-11-15" < "2024-12-01" anche come stringhe.
+        # Usiamo __gte / __lte su stringa: funziona perche' il formato YYYY-MM-DD HH:MM:SS
+        # e' ordinabile lessicograficamente (anno > mese > giorno, sempre stessa lunghezza).
         data_da = self.request.query_params.get('data_da')
         data_a = self.request.query_params.get('data_a')
 
-        try:
-            if data_da:
-                # Valida che il formato sia YYYY-MM-DD prima di usarlo
-                datetime.strptime(data_da, '%Y-%m-%d')
-                # Il limite inferiore parte dall'inizio del giorno (00:00:00)
-                qs = qs.filter(data_ordine__gte=data_da + ' 00:00:00')
-            if data_a:
-                datetime.strptime(data_a, '%Y-%m-%d')
-                # Il limite superiore arriva alla fine del giorno (23:59:59)
-                # per includere tutti gli ordini di quella data
-                qs = qs.filter(data_ordine__lte=data_a + ' 23:59:59')
-        except ValueError:
-            # Formato data non riconosciuto: segna l'errore e restituisce vuoto
-            # L'errore 400 vero e proprio viene sollevato da list() qui sotto
-            self._data_filter_error = True
-            return qs.none()
+        if data_da:
+            self._valida_data(data_da, 'data_da')
+            # Aggiunge l'orario di inizio giornata per includere tutti gli ordini del giorno
+            qs = qs.filter(data_ordine__gte=data_da + ' 00:00:00')
+
+        if data_a:
+            self._valida_data(data_a, 'data_a')
+            # Aggiunge l'orario di fine giornata per includere tutti gli ordini del giorno
+            qs = qs.filter(data_ordine__lte=data_a + ' 23:59:59')
 
         return qs
-
-    def list(self, request, *args, **kwargs):
-        # Se get_queryset ha rilevato un formato data errato, risponde 400
-        if getattr(self, '_data_filter_error', False):
-            return Response(
-                {"error": "Formato data non valido. Usa YYYY-MM-DD (es. 2024-11-01)."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().list(request, *args, **kwargs)
 
     """
     @action crea un endpoint extra su un ViewSet esistente, al di fuori dei 7 standard
