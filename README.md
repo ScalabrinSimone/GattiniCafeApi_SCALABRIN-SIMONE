@@ -3,7 +3,7 @@
 # 🐱 Gattini Cafe API
 
 **API REST per la gestione di menu e ordini del Gattini Cafe**  
-*Progetto scolastico — TPSIT · 5° anno ITIS*
+*Project by Scalabrin Simone · TPSIT · 5ªAII*
 
 ![Django](https://img.shields.io/badge/Django-6.0.3-092E20?style=flat-square&logo=django&logoColor=white)
 ![DRF](https://img.shields.io/badge/Django_REST_Framework-3.17.1-red?style=flat-square)
@@ -74,7 +74,7 @@ GattiniCafeApi_SCALABRIN-SIMONE/
 - Python 3.10+ installato
 - `git` installato
 
-### 1. Clona il repository
+### 1. Clona il repository (creato con ssh)
 
 ```bash
 git clone https://github.com/ScalabrinSimone/GattiniCafeApi_SCALABRIN-SIMONE.git
@@ -121,6 +121,12 @@ Le password degli utenti di test nel DB sono state resettate, quindi serve crear
 python manage.py createsuperuser
 ```
 
+Cosniglio di usare le seguenti credenziali (preinserite su postman):
+- Nome utente: `admin`.
+- Email: `*nessuna*`.
+- Password: `admin1234`.
+
+> **Nota:** La password verrá dichiarata come non sicura da django, premere y per metterla senza fare controllo password.
 ---
 
 ## 🚀 Avvio del server
@@ -133,7 +139,7 @@ Il server sarà disponibile su: **http://127.0.0.1:8000**
 
 ---
 
-## 🔑 Credenziali per i test
+## 🔑 Credenziali per i test (consigliati per test veloci su postman/estensione)
 
 > Crea il superuser con `createsuperuser` come mostrato sopra, oppure usa queste credenziali di esempio se presenti nel DB:
 
@@ -156,8 +162,9 @@ Nel repository è inclusa una collection Postman pronta all'uso con tutte le chi
 
 1. Apri [Postman](https://www.postman.com/downloads/)
 2. Clicca **Import** → seleziona il file `Gattini Cafe API.postman_collection.json` dalla root del progetto
-3. Avvia il server Django (`python manage.py runserver`)
-4. Esegui prima la chiamata **Login** per salvare il token, poi tutte le altre
+3. Inserisci nelle **variabili della collezione** e inserire su `baseUrl: http://127.0.0.1:8000` 
+4. Avvia il server Django (`python manage.py runserver`)
+5. Esegui prima la chiamata **Login** per salvare il token, poi tutte le altre
 
 > Il token viene salvato automaticamente come variabile della collection e inserito nell'header `Authorization: Bearer` di ogni richiesta protetta.
 
@@ -397,6 +404,6 @@ PyJWT==2.12.1
 ---
 
 <div align="center">
-  <sub>Progetto realizzato da <strong>Simone Scalabrin</strong> · ITIS · 5ª informatica</sub><br>
+  <sub>Progetto realizzato da <strong>Simone Scalabrin</strong> · ITIS A. Rossi · 5ªAII</sub><br>
   <sub>🐾 Pallino il Maine Coon approva questo README</sub>
 </div>
