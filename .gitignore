@@ -28,7 +28,7 @@ ENV/
 local_settings.py
 db.sqlite3
 gattini_cafe.db
-media/
+# media/ # Commentato per debug, sarebbe da commentare in rilascio.
 staticfiles/
 
 # Richieste REST (estensione)
