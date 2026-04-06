@@ -29,6 +29,8 @@ local_settings.py
 db.sqlite3
 gattini_cafe.db
 # media/ # Commentato per debug, sarebbe da commentare in rilascio.
+# Tolgo immagine di test creata da Pillow:
+media/prodotti/foto.png
 staticfiles/
 
 # Richieste REST (estensione)

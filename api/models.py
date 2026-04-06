@@ -42,7 +42,7 @@ class Categoria(models.Model):
     descrizione = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'categoria'
 
 class Prodotto(models.Model):
@@ -55,8 +55,9 @@ class Prodotto(models.Model):
     immagine_url = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'prodotto'
+        ordering = ['id'] # Per ordinare per id.
 
 class Ordine(models.Model):
     id = models.AutoField(primary_key=True)  # aggiungi id PK
@@ -67,8 +68,9 @@ class Ordine(models.Model):
     note = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'ordine'
+        ordering = ['-data_ordine'] # Per ordinare per data.
 
 class OrdineProdotto(models.Model):
     id = models.AutoField(primary_key=True)  # aggiungi se non c'è
@@ -77,5 +79,5 @@ class OrdineProdotto(models.Model):
     quantita = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'ordine_prodotto'
