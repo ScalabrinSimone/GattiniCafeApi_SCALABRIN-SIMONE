@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError
-from .models import Categoria, Prodotto, Ordine
+from .models import Categoria, Prodotto, Ordine, OrdineProdotto
 from .serializers import CategoriaSerializer, OrdineCreateSerializer, ProdottoSerializer, UserSerializer, OrdineSerializer
 from .permissions import IsOwnerOrAdmin, IsAdminUser
 from rest_framework import viewsets, filters
@@ -34,6 +34,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 import django_filters
 from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import datetime
+from django.db.models import Count, Sum  # Per le aggregazioni ORM (COUNT e SUM in SQL)
 
 
 class ApiRootView(APIView):
@@ -51,6 +52,9 @@ class ApiRootView(APIView):
                 "refresh": request.build_absolute_uri('auth/token/refresh/'),
                 "logout": request.build_absolute_uri('auth/logout/'),
                 "me": request.build_absolute_uri('auth/me/'),
+            },
+            "admin": {
+                "stats": request.build_absolute_uri('admin/stats/'),
             }
         })
 
@@ -162,6 +166,71 @@ class LogoutView(APIView):
             return Response({"detail": "Token non valido."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AdminStatsView(APIView):
+    """
+    Endpoint statistiche per admin: GET /api/admin/stats/
+    Richiede autenticazione JWT e is_staff=True.
+
+    Restituisce:
+    - ordini_per_stato: quanti ordini ci sono per ogni stato
+    - prodotto_piu_venduto: il prodotto con la somma di quantità ordinata più alta
+    - incasso_oggi: somma dei totali degli ordini creati oggi
+    """
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        # --- 1. Ordini per stato ---
+        # values('stato') raggruppa per stato (GROUP BY stato in SQL)
+        # annotate(Count('id')) aggiunge il conteggio per ogni gruppo
+        # Risultato: [{'stato': 'in_attesa', 'totale': 3}, ...]
+        ordini_per_stato = (
+            Ordine.objects
+            .values('stato')
+            .annotate(totale=Count('id'))
+            .order_by('stato')
+        )
+        # Trasformiamo in un dizionario {stato: count} per una risposta più leggibile
+        stati = {entry['stato']: entry['totale'] for entry in ordini_per_stato}
+
+        # --- 2. Prodotto più venduto ---
+        # Dalla tabella ponte ordine_prodotto, sommiamo le quantità per ogni prodotto
+        # values('prodotto') raggruppa per prodotto_id
+        # annotate(Sum('quantita')) somma le quantità di ogni gruppo
+        # order_by('-totale_venduto') mette il più venduto in cima (- = decrescente)
+        prodotto_top = (
+            OrdineProdotto.objects
+            .values('prodotto__id', 'prodotto__nome')
+            .annotate(totale_venduto=Sum('quantita'))
+            .order_by('-totale_venduto')
+            .first()  # Prende solo il primo (il più venduto)
+        )
+
+        if prodotto_top:
+            prodotto_info = {
+                "id": prodotto_top['prodotto__id'],
+                "nome": prodotto_top['prodotto__nome'],
+                "quantita_totale_venduta": prodotto_top['totale_venduto'],
+            }
+        else:
+            prodotto_info = None
+
+        # --- 3. Incasso totale del giorno ---
+        # data_ordine è un TextField nel formato 'YYYY-MM-DD HH:MM:SS'
+        # Usiamo __startswith con la data odierna per filtrare gli ordini di oggi
+        oggi = datetime.now().strftime('%Y-%m-%d')  # Es: '2026-04-06'
+        incasso_oggi = (
+            Ordine.objects
+            .filter(data_ordine__startswith=oggi)
+            .aggregate(totale=Sum('totale'))  # SUM(totale) su tutti gli ordini di oggi
+        )['totale'] or 0  # Se non ci sono ordini oggi, aggregate ritorna None → usiamo 0
+
+        return Response({
+            "ordini_per_stato": stati,
+            "prodotto_piu_venduto": prodotto_info,
+            "incasso_oggi": round(incasso_oggi, 2),
+        })
+
+
 class OrdineViewSet(viewsets.ModelViewSet):
     queryset = Ordine.objects.all()
     serializer_class = OrdineSerializer
@@ -197,9 +266,9 @@ class OrdineViewSet(viewsets.ModelViewSet):
         # Filtro per data: legge ?data_da= e ?data_a= dai query param
         # Formato atteso: YYYY-MM-DD (es. ?data_da=2024-11-01&data_a=2024-11-30)
         #
-        # NOTA: data_ordine e' un TextField nel modello (il DB fornito salva date come testo).
-        # Usiamo __gte / __lte su stringa: funziona perche' il formato YYYY-MM-DD HH:MM:SS
-        # e' ordinabile lessicograficamente (anno > mese > giorno, sempre stessa lunghezza).
+        # NOTA: data_ordine è un TextField nel modello (il DB fornito salva date come testo).
+        # Usiamo __gte / __lte su stringa: funziona perché il formato YYYY-MM-DD HH:MM:SS
+        # è ordinabile lessicograficamente (anno > mese > giorno, sempre stessa lunghezza).
         data_da = self.request.query_params.get('data_da')
         data_a = self.request.query_params.get('data_a')
 

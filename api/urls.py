@@ -19,4 +19,7 @@ urlpatterns = [
     path('auth/token/refresh/', TokenRefreshView.as_view()),
     path('auth/logout/', views.LogoutView.as_view()),
     path('auth/me/', views.MeView.as_view()),
+
+    # Statistiche admin (richiede JWT + is_staff=True)
+    path('admin/stats/', views.AdminStatsView.as_view()),
 ]
