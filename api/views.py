@@ -179,23 +179,31 @@ class OrdineViewSet(viewsets.ModelViewSet):
             qs = Ordine.objects.filter(utente_id=self.request.user.id)
 
         # Filtro per data: legge ?data_da= e ?data_a= dai query param
-        # Il formato atteso è YYYY-MM-DD (es. ?data_da=2024-11-01&data_a=2024-11-30)
+        # Formato atteso: YYYY-MM-DD (es. ?data_da=2024-11-01&data_a=2024-11-30)
+        #
+        # NOTA: data_ordine e' un TextField nel modello (il DB fornito salva date come testo).
+        # __date__gte non e' disponibile su TextField, quindi confrontiamo le stringhe
+        # direttamente con __gte / __lte.
+        # Questo funziona correttamente perche' il formato YYYY-MM-DD HH:MM:SS
+        # e' ordinabile lessicograficamente (anno prima, poi mese, poi giorno).
+        # Es: "2024-11-01" < "2024-11-15" < "2024-12-01" anche come stringhe.
         data_da = self.request.query_params.get('data_da')
         data_a = self.request.query_params.get('data_a')
 
         try:
-            # __date estrae solo la parte data dal DateTimeField, ignorando l'orario
             if data_da:
-                # Valida il formato prima di passarlo a Django
+                # Valida che il formato sia YYYY-MM-DD prima di usarlo
                 datetime.strptime(data_da, '%Y-%m-%d')
-                qs = qs.filter(data_ordine__date__gte=data_da)
+                # Il limite inferiore parte dall'inizio del giorno (00:00:00)
+                qs = qs.filter(data_ordine__gte=data_da + ' 00:00:00')
             if data_a:
                 datetime.strptime(data_a, '%Y-%m-%d')
-                qs = qs.filter(data_ordine__date__lte=data_a)
+                # Il limite superiore arriva alla fine del giorno (23:59:59)
+                # per includere tutti gli ordini di quella data
+                qs = qs.filter(data_ordine__lte=data_a + ' 23:59:59')
         except ValueError:
-            # Se il formato è sbagliato (es. 01-11-2024), restituiamo
-            # un queryset vuoto — l'errore viene gestito nella risposta
-            # dall'override di list() qui sotto
+            # Formato data non riconosciuto: segna l'errore e restituisce vuoto
+            # L'errore 400 vero e proprio viene sollevato da list() qui sotto
             self._data_filter_error = True
             return qs.none()
 
