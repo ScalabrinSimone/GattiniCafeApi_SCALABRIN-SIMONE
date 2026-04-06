@@ -70,6 +70,12 @@ REST_FRAMEWORK = { # È la configurazione globale di DRF. Dice a tutte le tue AP
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
     ],
+
+    # --- PAGINAZIONE ---
+    # Classe built-in di DRF: numera le pagine con ?page=N
+    'DEFAULT_PAGINATION_CLASS': 'config.settings.CustomPagination', # Funziona solo se la classe (in fondo) é nello stesso file. # Pre-built: rest_framework.pagination.PageNumberPagination.
+    # Quanti oggetti per pagina di default (modificabile dal client con ?page_size=N).
+    'PAGE_SIZE': 10,
 }
 
 from datetime import timedelta
@@ -79,6 +85,15 @@ SIMPLE_JWT = { # Configura come funzionano i token JWT. È il "motore" che gener
 
     #Altri parametri per rotazione, algoritmi, ecc...
 }
+
+# Classe custom per permettere al client di modificare la page_size via query param.
+# Senza questo, ?page_size=5 viene ignorato e si usa sempre PAGE_SIZE dal settings.
+from rest_framework.pagination import PageNumberPagination
+
+class CustomPagination(PageNumberPagination):
+    page_size = 10  # Default: 10 elementi per pagina
+    page_size_query_param = 'page_size' # Il client può usare ?page_size=5
+    max_page_size = 100 # Limite massimo per evitare query troppo pesanti
 
 ROOT_URLCONF = 'config.urls'
 
