@@ -32,6 +32,7 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters
 from rest_framework_simplejwt.tokens import RefreshToken
+from datetime import datetime
 
 
 class ApiRootView(APIView):
@@ -171,9 +172,43 @@ class OrdineViewSet(viewsets.ModelViewSet):
         return OrdineSerializer
 
     def get_queryset(self):
+        # Base: admin vede tutti gli ordini, utente normale solo i propri
         if self.request.user.is_staff:
-            return Ordine.objects.all()
-        return Ordine.objects.filter(utente_id=self.request.user.id)
+            qs = Ordine.objects.all()
+        else:
+            qs = Ordine.objects.filter(utente_id=self.request.user.id)
+
+        # Filtro per data: legge ?data_da= e ?data_a= dai query param
+        # Il formato atteso è YYYY-MM-DD (es. ?data_da=2024-11-01&data_a=2024-11-30)
+        data_da = self.request.query_params.get('data_da')
+        data_a = self.request.query_params.get('data_a')
+
+        try:
+            # __date estrae solo la parte data dal DateTimeField, ignorando l'orario
+            if data_da:
+                # Valida il formato prima di passarlo a Django
+                datetime.strptime(data_da, '%Y-%m-%d')
+                qs = qs.filter(data_ordine__date__gte=data_da)
+            if data_a:
+                datetime.strptime(data_a, '%Y-%m-%d')
+                qs = qs.filter(data_ordine__date__lte=data_a)
+        except ValueError:
+            # Se il formato è sbagliato (es. 01-11-2024), restituiamo
+            # un queryset vuoto — l'errore viene gestito nella risposta
+            # dall'override di list() qui sotto
+            self._data_filter_error = True
+            return qs.none()
+
+        return qs
+
+    def list(self, request, *args, **kwargs):
+        # Se get_queryset ha rilevato un formato data errato, risponde 400
+        if getattr(self, '_data_filter_error', False):
+            return Response(
+                {"error": "Formato data non valido. Usa YYYY-MM-DD (es. 2024-11-01)."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().list(request, *args, **kwargs)
 
     """
     @action crea un endpoint extra su un ViewSet esistente, al di fuori dei 7 standard
