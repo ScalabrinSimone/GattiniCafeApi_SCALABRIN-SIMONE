@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django_filters", # Per fare i filtri dopo il ?
     "corsheaders", # Per CORS (Cross-Origin Resource Sharing). È una politica di sicurezza dei browser. Uso per altro client su un'altra porta, altrimenti il browser lo blocca.
     "api", # App REST del progetto
+    "rest_framework_simplejwt.token_blacklist", # Per eseguire il logout.
 ]
 
 MIDDLEWARE = [ # È una catena di "filtri" che ogni richiesta HTTP passa prima di arrivare alla view
