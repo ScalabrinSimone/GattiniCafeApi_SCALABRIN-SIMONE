@@ -334,6 +334,76 @@
       "response": []
     },
     {
+      "name": "Ordini con filtro data CORRETTO",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ordini/?data_da=2026-04-06",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordini",
+            ""
+          ],
+          "query": [
+            {
+              "key": "data_da",
+              "value": "2026-04-06"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ordini con filtro data SCORRETTO",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ordini/?data_da=06-04-2026",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordini",
+            ""
+          ],
+          "query": [
+            {
+              "key": "data_da",
+              "value": "06-04-2026"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Crea ordine",
       "event": [
         {
@@ -719,6 +789,78 @@
             "api",
             "prodotti",
             "14",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Status (admin)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/stats/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "stats",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add immagine (admin)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "immagine",
+              "type": "file",
+              "uuid": "0ef20af5-6086-4d03-82c6-446ae1ff2a47",
+              "src": "/home/ender/Downloads/cappuccinoBaffiBianchi.png"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/prodotti/1/upload_immagine/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "prodotti",
+            "1",
+            "upload_immagine",
             ""
           ]
         }
