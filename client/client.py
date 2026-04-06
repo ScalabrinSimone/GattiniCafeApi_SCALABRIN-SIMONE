@@ -15,11 +15,12 @@ BASE_URL = "http://127.0.0.1:8000/api"
 def login(username: str, password: str) -> str:
     """
     Esegue il login tramite JWT.
-    POST /api/token/ -> {"access": "...", "refresh": "..."}
+    POST /api/auth/login/ -> {"access": "...", "refresh": "..."}
+    L'endpoint è definito in api/urls.py come TokenObtainPairView.
     Restituisce l'access token da usare nelle richieste successive.
     """
     risposta = requests.post(
-        f"{BASE_URL}/token/",
+        f"{BASE_URL}/auth/login/",
         json={"username": username, "password": password}
     )
     # raise_for_status lancia un'eccezione se status >= 400
