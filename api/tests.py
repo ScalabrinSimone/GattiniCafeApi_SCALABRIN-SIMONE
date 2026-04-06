@@ -1,8 +1,19 @@
 """
 TEST AUTOMATICI — Teoria e funzionamento
 
+Prima di tutto
+    # 1. Crea la migrazione mancante
+    python manage.py makemigrations
+
+    # 2. Verifica che sia stata creata (dovresti vedere un nuovo file in api/migrations/)
+    # 3. Applica al tuo DB locale (opzionale, ma buona pratica)
+    python manage.py migrate
+
+    # 4. Riesegui i test
+    python manage.py test
+
 Prima di eseguire i test
-Il test test_upload_immagine_admin usa Pillow per creare un'immagine fake in memoria. Se non ce l'hai installato (il requirements.txt ha giá tutto).
+    Il test test_upload_immagine_admin usa Pillow per creare un'immagine fake in memoria. Se non ce l'hai installato (il requirements.txt ha giá tutto).
 
 Cosa sono i test automatici?
     I test automatici sono script che verificano che il codice funzioni correttamente,
