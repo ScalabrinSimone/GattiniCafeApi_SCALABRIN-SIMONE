@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "d2de0089-6d79-4528-a0c9-78b16148fead",
+    "_postman_id": "4c6d5b4f-657f-421b-9017-1ddf396b8de0",
     "name": "Gattini Cafe API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "48905555"
@@ -73,6 +73,45 @@
             "api",
             "auth",
             "login",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Logout utente normale",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refresh\": \"{{refreshToken}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout",
             ""
           ]
         }
@@ -384,7 +423,8 @@
           "script": {
             "exec": [
               "const res = pm.response.json();\r",
-              "pm.collectionVariables.set(\"adminToken\", res.access);"
+              "pm.collectionVariables.set(\"adminToken\", res.access);\r",
+              "pm.collectionVariables.set(\"adminRefreshToken\", res.refresh);"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -413,6 +453,45 @@
             "api",
             "auth",
             "login",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Logout admin",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refresh\": \"{{adminRefreshToken}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout",
             ""
           ]
         }
@@ -687,9 +766,12 @@
       "value": ""
     },
     {
+      "key": "adminRefreshToken",
+      "value": ""
+    },
+    {
       "key": "ultimoOrdineId",
-      "value": "",
-      "type": "default"
+      "value": ""
     }
   ]
 }

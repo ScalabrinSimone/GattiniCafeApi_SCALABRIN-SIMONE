@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
 
 def hello_view(request):
@@ -24,8 +27,11 @@ def hello_view(request):
     return JsonResponse({"message": "Ciao da Django!", "metodo": request.method})
 
 
-def home_view(request):
-    return JsonResponse({
+class HomeView(APIView): # Metto APIView e non request per avere la parte grafica di DRF.
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
         "benvenuto": "Gattini Cafe API 🐱",
         "versione": "1.0",
         "endpoints": {
@@ -62,7 +68,7 @@ def home_view(request):
 
 
 urlpatterns = [
-    path('', home_view),                    # 127.0.0.1:8000/ — home con lista endpoint
+    path('', HomeView.as_view()),           # 127.0.0.1:8000/ — home con lista endpoint
     path('admin/', admin.site.urls),
     path('api/hello/', hello_view),         # test base Django (no DRF)
     path('api/', include('api.urls')),      # tutti gli endpoint API
