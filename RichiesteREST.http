@@ -1,0 +1,252 @@
+### ========================================
+### GATTINI CAFE API - Test completo
+### Estensione richiesta: REST Client (humao)
+### ========================================
+
+### ----------------------------------------
+### 1. REGISTER - Crea nuovo utente
+### ----------------------------------------
+# @name register
+POST http://127.0.0.1:8000/api/auth/register/
+Content-Type: application/json
+
+{"username": "pallino", "email": "pallino@gattini.it", "password": "Miagola123!", "first_name": "Pallino", "last_name": "Gatto"}
+
+###
+
+### ----------------------------------------
+### 2. LOGIN utente normale
+### ----------------------------------------
+# @name login
+POST http://127.0.0.1:8000/api/auth/login/
+Content-Type: application/json
+
+{"username": "pallino", "password": "Miagola123!"}
+
+###
+
+### ----------------------------------------
+### 3. ME - Dati utente autenticato
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/auth/me/
+Authorization: Bearer {{login.response.body.access}}
+
+###
+
+### ----------------------------------------
+### 4. REFRESH TOKEN - Rinnova access token
+### ----------------------------------------
+POST http://127.0.0.1:8000/api/auth/token/refresh/
+Content-Type: application/json
+
+{"refresh": "{{login.response.body.refresh}}"}
+
+###
+
+### ----------------------------------------
+### 5. LOGOUT - Invalida refresh token
+### ----------------------------------------
+POST http://127.0.0.1:8000/api/auth/logout/
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.access}}
+
+{"refresh": "{{login.response.body.refresh}}"}
+
+###
+
+### ========================================
+### MENU PUBBLICO (senza autenticazione)
+### ========================================
+
+### ----------------------------------------
+### 6. Lista categorie (pubblico)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/categorie/
+
+###
+
+### ----------------------------------------
+### 7. Dettaglio categoria (pubblico)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/categorie/1/
+
+###
+
+### ----------------------------------------
+### 8. Lista prodotti (pubblico)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/prodotti/
+
+###
+
+### ----------------------------------------
+### 9. Prodotti filtrati per categoria
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/prodotti/?categoria=1
+
+###
+
+### ----------------------------------------
+### 10. Prodotti disponibili (accetta sia 1 che true)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/prodotti/?disponibile=true
+
+###
+
+### ----------------------------------------
+### 11. Filtro combinato categoria + disponibile
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/prodotti/?categoria=1&disponibile=true
+
+###
+
+### ----------------------------------------
+### 12. Ricerca prodotti per nome/descrizione
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/prodotti/?search=cappuccino
+
+###
+
+### ----------------------------------------
+### 13. Dettaglio prodotto (pubblico)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/prodotti/1/
+
+###
+
+### ========================================
+### ORDINI (utente autenticato)
+### ========================================
+
+### ----------------------------------------
+### 14. Lista ordini (solo i propri)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/ordini/
+Authorization: Bearer {{login.response.body.access}}
+
+###
+
+### ----------------------------------------
+### 15. Crea ordine con prodotti
+### ----------------------------------------
+# @name creaOrdine
+POST http://127.0.0.1:8000/api/ordini/
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.access}}
+
+{"note": "Senza lattosio per Pallino", "prodotti": [{"prodotto_id": 1, "quantita": 2}, {"prodotto_id": 3, "quantita": 1}]}
+
+###
+
+### ----------------------------------------
+### 16. Dettaglio ordine (usa id dall'ordine creato)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/ordini/{{creaOrdine.response.body.id}}/
+Authorization: Bearer {{login.response.body.access}}
+
+###
+
+### ========================================
+### ADMIN (richiede is_staff=True)
+### ========================================
+
+### ----------------------------------------
+### 17. LOGIN admin
+### ----------------------------------------
+# @name adminLogin
+POST http://127.0.0.1:8000/api/auth/login/
+Content-Type: application/json
+
+{"username": "admin", "password": "TUA_PASSWORD_ADMIN"}
+
+###
+
+### ----------------------------------------
+### 18. Lista tutti gli ordini (admin vede tutti)
+### ----------------------------------------
+GET http://127.0.0.1:8000/api/ordini/
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+###
+
+### ----------------------------------------
+### 19. PATCH stato ordine (solo admin)
+### ----------------------------------------
+PATCH http://127.0.0.1:8000/api/ordini/{{creaOrdine.response.body.id}}/stato/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"stato": "in_preparazione"}
+
+###
+
+### ----------------------------------------
+### 20. Crea categoria (solo admin)
+### ----------------------------------------
+# @name creaCategoria
+POST http://127.0.0.1:8000/api/categorie/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"nome": "Dolci Felini", "descrizione": "Dolci artigianali per gatti esigenti"}
+
+###
+
+### ----------------------------------------
+### 21. Modifica categoria (solo admin)
+### ----------------------------------------
+PUT http://127.0.0.1:8000/api/categorie/{{creaCategoria.response.body.id}}/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"nome": "Bevande Calde Premium", "descrizione": "Le migliori bevande calde del Gattini Cafe"}
+
+###
+
+### ----------------------------------------
+### 22. Elimina categoria (solo admin)
+### ----------------------------------------
+DELETE http://127.0.0.1:8000/api/categorie/{{creaCategoria.response.body.id}}/
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+###
+
+### ----------------------------------------
+### 23. Crea prodotto (solo admin)
+### ----------------------------------------
+# @name creaProdotto
+POST http://127.0.0.1:8000/api/prodotti/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"nome": "Cappuccino Gattoso", "descrizione": "Con latte di mandorla", "prezzo": 2.50, "disponibile": 1, "categoria": 1}
+
+###
+
+### ----------------------------------------
+### 24. Modifica prodotto completo (solo admin)
+### ----------------------------------------
+PUT http://127.0.0.1:8000/api/prodotti/{{creaProdotto.response.body.id}}/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"nome": "Cappuccino Deluxe", "descrizione": "Con latte di mandorla bio", "prezzo": 3.00, "disponibile": 1, "categoria": 1}
+
+###
+
+### ----------------------------------------
+### 25. Aggiornamento parziale prodotto (solo admin)
+### ----------------------------------------
+PATCH http://127.0.0.1:8000/api/prodotti/{{creaProdotto.response.body.id}}/
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.access}}
+
+{"disponibile": 0}
+
+###
+
+### ----------------------------------------
+### 26. Elimina prodotto - risposta JSON con dati prodotto (solo admin)
+### ----------------------------------------
+DELETE http://127.0.0.1:8000/api/prodotti/{{creaProdotto.response.body.id}}/
+Authorization: Bearer {{adminLogin.response.body.access}}

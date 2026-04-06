@@ -69,11 +69,16 @@ class HelloView(APIView):
 
 
 class ProdottoFilter(django_filters.FilterSet):
-    disponibile = django_filters.NumberFilter(field_name='disponibile')
-    disponibile_bool = django_filters.CharFilter(method='filter_disponibile_bool')
+    """
+    Filtro custom per Prodotto.
+    Il campo disponibile nel modello e' IntegerField (0/1), non BooleanField.
+    Questo filtro accetta sia la forma numerica (?disponibile=1)
+    che quella booleana (?disponibile=true / ?disponibile=false),
+    mappando entrambe al valore intero corretto prima della query SQL.
+    """
+    disponibile = django_filters.CharFilter(method='filter_disponibile')
 
-    def filter_disponibile_bool(self, queryset, name, value):
-        # Accetta sia ?disponibile=1 che ?disponibile=true
+    def filter_disponibile(self, queryset, name, value):
         if value.lower() in ['true', '1']:
             return queryset.filter(disponibile=1)
         if value.lower() in ['false', '0']:
@@ -106,6 +111,18 @@ class ProdottoViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAdminUser()]
+
+    def destroy(self, request, *args, **kwargs):
+        # Sovrascrive il destroy standard (che ritorna 204 senza corpo)
+        # per restituire un JSON di conferma con i dati del prodotto eliminato.
+        prodotto = self.get_object()
+        serializer = self.get_serializer(prodotto)
+        dati = serializer.data  # Salva i dati prima di eliminare
+        prodotto.delete()
+        return Response(
+            {"messaggio": "Prodotto eliminato con successo.", "prodotto": dati},
+            status=status.HTTP_200_OK
+        )
 
 
 class RegisterView(APIView):
