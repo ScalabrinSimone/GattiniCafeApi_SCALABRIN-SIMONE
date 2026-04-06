@@ -1,6 +1,9 @@
 """
 TEST AUTOMATICI — Teoria e funzionamento
 
+Prima di eseguire i test
+Il test test_upload_immagine_admin usa Pillow per creare un'immagine fake in memoria. Se non ce l'hai installato (il requirements.txt ha giá tutto).
+
 Cosa sono i test automatici?
     I test automatici sono script che verificano che il codice funzioni correttamente,
     simulando le stesse operazioni che faresti a mano (es. in Postman), ma in modo
@@ -31,15 +34,24 @@ Struttura di un test:
       - Assert: verifica che la risposta sia quella attesa (status code, dati, ecc.)
 
 Come eseguire i test:
-    python manage.py test api
-    python manage.py test api.tests.AuthTestCase          # solo una classe
-    python manage.py test api.tests.AuthTestCase.test_login_ok  # solo un test
+    python manage.py test api # Tutti i test
+    python manage.py test api.tests.AuthTestCase # Solo una classe
+    python manage.py test api.tests.AuthTestCase.test_login_ok # Solo un test
 
 Cosa significa un test che "passa"?
     Verde (OK) = il comportamento e' quello atteso.
     Rosso (FAIL/ERROR) = qualcosa non funziona come dovrebbe.
     Un test che fallisce non significa necessariamente un bug nel test:
     puo' significare che hai cambiato la logica della view senza aggiornare il test.
+
+    Creating test database for alias 'default'...
+    ....................
+    ----------------------------------------------------------------------
+    Ran 20 tests in 3.2s
+
+    OK
+    Destroying test database for alias 'default'...
+    Ogni . è un test passato. Se vedi una F è un failure (assertion sbagliata), se vedi una E è un errore (eccezione non gestita).
 """
 
 from django.test import TestCase
