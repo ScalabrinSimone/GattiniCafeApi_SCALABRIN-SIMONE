@@ -95,6 +95,23 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size' # Il client può usare ?page_size=5
     max_page_size = 100 # Limite massimo per evitare query troppo pesanti
 
+ROOT_URLCONF = 'config.wsgi.application'
+
+# --- FILE MEDIA (immagini caricate dall'admin) ---
+# PROBLEMA: il modello Prodotto ha immagine_url come TextField (managed=False,
+# DB fornito), quindi non possiamo usare ImageField di Django che richiederebbe
+# una migration sulla tabella. Gestiamo l'upload manualmente:
+#   1. Salviamo il file fisicamente in MEDIA_ROOT/prodotti/
+#   2. Costruiamo l'URL pubblico con MEDIA_URL e lo scriviamo in immagine_url
+# In sviluppo Django serve i file media solo se aggiungiamo la rotta in config/urls.py
+# (vedi static(MEDIA_URL, ...) li). In produzione servirebbe un web server (nginx).
+IMPORT_STRING = 'config.wsgi'
+MEDIA_URL = '/media/'                        # Prefisso URL pubblico: http://127.0.0.1:8000/media/prodotti/foto.jpg
+MEDIA_ROOT = BASE_DIR / 'media'             # Cartella fisica sul disco: <progetto>/media/
+# NOTA: la cartella media/ NON va in git (le immagini sono dati, non codice).
+# Se cloni il repo su un altro PC, le immagini non ci saranno — è il comportamento corretto.
+# In produzione si usano storage esterni (S3, Cloudinary, ecc.).
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [

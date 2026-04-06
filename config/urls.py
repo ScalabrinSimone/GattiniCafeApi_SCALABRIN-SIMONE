@@ -20,6 +20,8 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from django.conf import settings
+from django.conf.urls.static import static  # Serve i file media in sviluppo
 
 
 def hello_view(request):
@@ -61,7 +63,9 @@ class HomeView(APIView): # Metto APIView e non request per avere la parte grafic
                 "POST   /api/prodotti/": "[JWT Admin] Crea prodotto",
                 "PUT    /api/prodotti/{id}/": "[JWT Admin] Modifica prodotto",
                 "PATCH  /api/prodotti/{id}/": "[JWT Admin] Aggiornamento parziale prodotto",
-                "DELETE /api/prodotti/{id}/": "[JWT Admin] Elimina prodotto"
+                "DELETE /api/prodotti/{id}/": "[JWT Admin] Elimina prodotto",
+                "POST   /api/prodotti/{id}/upload_immagine/": "[JWT Admin] Carica immagine prodotto",
+                "GET    /api/admin/stats/": "[JWT Admin] Statistiche (ordini, prodotto top, incasso)"
             }
         }
     })
@@ -73,3 +77,12 @@ urlpatterns = [
     path('api/hello/', hello_view),         # test base Django (no DRF)
     path('api/', include('api.urls')),      # tutti gli endpoint API
 ]
+
+# --- SERVIRE I FILE MEDIA IN SVILUPPO ---
+# In sviluppo (DEBUG=True) Django non serve i file statici/media automaticamente.
+# Questa riga aggiunge una rotta temporanea che mappa MEDIA_URL -> MEDIA_ROOT,
+# così http://127.0.0.1:8000/media/prodotti/foto.jpg restituisce il file dal disco.
+# In produzione questa rotta NON va usata: il web server (nginx/apache) serve i file
+# molto più efficientemente di Django.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
