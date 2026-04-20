@@ -111,7 +111,16 @@ Poiché la struttura del DB è preesistente, applica le migrazioni senza modific
 python manage.py migrate --fake
 ```
 
+Poi crea fisicamente le tabelle per la blacklist JWT (necessarie per il login):
+
+```bash
+python manage.py migrate --fake token_blacklist zero
+python manage.py migrate token_blacklist
+```
+
 > **Nota:** `--fake` dice a Django di registrare le migrazioni come eseguite senza applicarle fisicamente, perché le tabelle esistono già nel DB fornito.
+> Il secondo step è necessario perché le tabelle di `token_blacklist` non sono incluse nel DB fornito e devono essere create da zero.
+
 
 ### 5. Crea un superuser
 
